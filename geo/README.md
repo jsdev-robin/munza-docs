@@ -74,6 +74,7 @@ GadmSchema.index({ 'properties.NAME_1': 1 });
 GadmSchema.index({ 'properties.NAME_2': 1 });
 GadmSchema.index({ 'properties.NAME_3': 1 });
 GadmSchema.index({ 'properties.NAME_4': 1 });
+GadmSchema.index({ 'properties.NAME_5': 1 });
 ```
 
 # 🌐 Administrative Services API (GADM) – cURL Examples
