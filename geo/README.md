@@ -75,13 +75,8 @@ GadmSchema.index({ 'properties.NAME_2': 1 });
 GadmSchema.index({ 'properties.NAME_3': 1 });
 GadmSchema.index({ 'properties.NAME_4': 1 });
 GadmSchema.index({ 'properties.NAME_5': 1 });
+GadmSchema.index({ 'properties.NAME_6': 1 });
 ```
-
-# 🌐 Administrative Services API (GADM) – cURL Examples
-
-This README provides example `cURL` commands to fetch hierarchical geographical data from the **Munza Geo API**.
-
----
 
 ## 📡 cURL Examples
 
