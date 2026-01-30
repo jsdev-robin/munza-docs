@@ -75,3 +75,20 @@ GadmSchema.index({ 'properties.NAME_2': 1 });
 GadmSchema.index({ 'properties.NAME_3': 1 });
 GadmSchema.index({ 'properties.NAME_4': 1 });
 ```
+
+# 🌐 Administrative Services API (GADM) – cURL Examples
+
+This README provides example `cURL` commands to fetch hierarchical geographical data from the **Munza Geo API**.
+
+---
+
+## 📡 cURL Examples
+
+```bash
+curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-0"
+curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-1/Bangladesh"
+curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-2/Dhaka"
+curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-3/Manikganj"
+curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-4/ManikganjSadar"
+curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-5/SomeUnion"
+curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-6/SomeUnionLevel5"
