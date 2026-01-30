@@ -12,7 +12,7 @@ The API provides access to the **entire GADM dataset for all countries**.
 - After contacting, you will **receive the dataset within 3 hours**.  
 - This ensures controlled access due to the **size and sensitivity** of the global dataset.
 
-**Contact:** [Developer Contact](mailto:robin.rh656@gmail.com)
+**Contact:** [Developer Contact(robin.rh656@gmail.com)](mailto:robin.rh656@gmail.com)
 
 ## 📑 Table of Contents
 
