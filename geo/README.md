@@ -4,6 +4,16 @@ A high-performance Node.js/TypeScript API designed to serve hierarchical geograp
 
 ---
 
+## 📬 Request Full Data
+
+The API provides access to the **entire GADM dataset for all countries**.  
+
+- To request the full dataset, **please contact the developer** directly.  
+- After contacting, you will **receive the dataset within 3 hours**.  
+- This ensures controlled access due to the **size and sensitivity** of the global dataset.
+
+**Contact:** [Developer Contact](mailto:robin.rh656@gmail.com)
+
 ## 📑 Table of Contents
 
 - [Features](#-features)
@@ -88,3 +98,5 @@ curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-3/Manikganj
 curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-4/ManikganjSadar"
 curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-5/SomeUnion"
 curl -X GET "https://munza-geo.vercel.app/api/v1/administrative/name-6/SomeUnionLevel5"
+---
+
