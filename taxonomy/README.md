@@ -35,16 +35,28 @@ export const taxonomyApi = createApi({
   ),
   endpoints: (builder) => ({
     getCategories: builder.query({
-      query: (ids) => `/category?in=${JSON.stringify(ids)}`,
+      query: (ids) => ({
+        url: '/category',
+        params: { in: ids }
+      }),
     }),
     getAttributes: builder.query({
-      query: (ids) => `/attribute?in=${JSON.stringify(ids)}`,
+      query: (ids) => ({
+        url: '/attribute',
+        params: { in: ids }
+      }),
     }),
     getValues: builder.query({
-      query: (ids) => `/value?in=${JSON.stringify(ids)}`,
+      query: (ids) => ({
+        url: '/value',
+        params: { in: ids }
+      }),
     }),
     getReturnReasons: builder.query({
-      query: (ids) => `/reasons?in=${JSON.stringify(ids)}`,
+      query: (ids) => ({
+        url: '/reasons',
+        params: { in: ids }
+      }),
     }),
   }),
 });
@@ -63,7 +75,6 @@ import React from 'react';
 import { useGetCategoriesQuery } from './services/taxonomyApi';
 
 function CategoryList() {
-  // Exact query format: ?in=["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"]
   const categoryIds = ["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"];
   
   const { data, error, isLoading, isError } = useGetCategoriesQuery(categoryIds);
@@ -93,21 +104,26 @@ Retrieves categories with their hierarchy levels.
 
 **Endpoint:** `GET /category`
 
-**Query Format:** `?in=["id1","id2","id3"]`
-
 **Query Parameters:**
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
-| `in` | string | Yes | JSON array of category IDs | `?in=["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"]` |
+| `in` | array | Yes | Array of category IDs | `["aa","ae","ap"]` |
 
-**Full Request URL:**
-```
-https://product-taxonomy.devmun.xyz/api/v2/en/category?in=["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"]
-```
+**Working curl commands:**
 
-**Request Example (curl):**
+**Option 1:** Using double quotes (Windows CMD)
 ```bash
 curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/category?in=[\"aa\",\"ae\",\"ap\",\"bi\",\"bt\",\"bu\",\"co\",\"el\",\"fb\",\"fr\",\"gc\",\"ha\",\"hb\",\"hg\",\"lb\",\"ma\",\"me\",\"na\",\"os\",\"pa\",\"rc\",\"se\",\"sg\",\"so\",\"tg\",\"vp\"]"
+```
+
+**Option 2:** Using single quotes (Git Bash / Linux / Mac)
+```bash
+curl -X GET 'https://product-taxonomy.devmun.xyz/api/v2/en/category?in=["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"]'
+```
+
+**Option 3:** URL encoded (Works in all terminals)
+```bash
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/category?in=%5B%22aa%22,%22ae%22,%22ap%22,%22bi%22,%22bt%22,%22bu%22,%22co%22,%22el%22,%22fb%22,%22fr%22,%22gc%22,%22ha%22,%22hb%22,%22hg%22,%22lb%22,%22ma%22,%22me%22,%22na%22,%22os%22,%22pa%22,%22rc%22,%22se%22,%22sg%22,%22so%22,%22tg%22,%22vp%22%5D"
 ```
 
 **RTK Query Example:**
@@ -117,8 +133,6 @@ const { data, isLoading } = useGetCategoriesQuery([
   "gc","ha","hb","hg","lb","ma","me","na","os","pa",
   "rc","se","sg","so","tg","vp"
 ]);
-
-// This makes request to: /category?in=["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"]
 ```
 
 **Success Response (200 OK):**
@@ -157,27 +171,31 @@ Retrieves attributes by their friendly IDs.
 
 **Endpoint:** `GET /attribute`
 
-**Query Format:** `?in=["id1","id2","id3"]`
-
 **Query Parameters:**
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
-| `in` | string | Yes | JSON array of attribute friendly_ids | `?in=["color","size","material"]` |
+| `in` | array | Yes | Array of attribute friendly_ids | `["color","size","material"]` |
 
-**Full Request URL:**
-```
-https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=["color","size","material"]
-```
+**Working curl commands:**
 
-**Request Example (curl):**
+**Option 1:** Using double quotes (Windows CMD)
 ```bash
 curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=[\"color\",\"size\",\"material\"]"
+```
+
+**Option 2:** Using single quotes (Git Bash / Linux / Mac)
+```bash
+curl -X GET 'https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=["color","size","material"]'
+```
+
+**Option 3:** URL encoded
+```bash
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=%5B%22color%22,%22size%22,%22material%22%5D"
 ```
 
 **RTK Query Example:**
 ```javascript
 const { data, isLoading } = useGetAttributesQuery(["color", "size", "material"]);
-// Makes request to: /attribute?in=["color","size","material"]
 ```
 
 **Success Response (200 OK):**
@@ -213,27 +231,31 @@ Retrieves values by their friendly IDs.
 
 **Endpoint:** `GET /value`
 
-**Query Format:** `?in=["id1","id2","id3"]`
-
 **Query Parameters:**
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
-| `in` | string | Yes | JSON array of value friendly_ids | `?in=["red","blue","large"]` |
+| `in` | array | Yes | Array of value friendly_ids | `["red","blue","large"]` |
 
-**Full Request URL:**
-```
-https://product-taxonomy.devmun.xyz/api/v2/en/value?in=["red","blue","large"]
-```
+**Working curl commands:**
 
-**Request Example (curl):**
+**Option 1:** Using double quotes (Windows CMD)
 ```bash
 curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/value?in=[\"red\",\"blue\",\"large\"]"
+```
+
+**Option 2:** Using single quotes (Git Bash / Linux / Mac)
+```bash
+curl -X GET 'https://product-taxonomy.devmun.xyz/api/v2/en/value?in=["red","blue","large"]'
+```
+
+**Option 3:** URL encoded
+```bash
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/value?in=%5B%22red%22,%22blue%22,%22large%22%5D"
 ```
 
 **RTK Query Example:**
 ```javascript
 const { data, isLoading } = useGetValuesQuery(["red", "blue", "large"]);
-// Makes request to: /value?in=["red","blue","large"]
 ```
 
 **Success Response (200 OK):**
@@ -267,27 +289,31 @@ Retrieves return reasons by their friendly IDs.
 
 **Endpoint:** `GET /reasons`
 
-**Query Format:** `?in=["id1","id2","id3"]`
-
 **Query Parameters:**
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
-| `in` | string | Yes | JSON array of return reason friendly_ids | `?in=["damaged","wrong-item"]` |
+| `in` | array | Yes | Array of return reason friendly_ids | `["damaged","wrong-item"]` |
 
-**Full Request URL:**
-```
-https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=["damaged","wrong-item"]
-```
+**Working curl commands:**
 
-**Request Example (curl):**
+**Option 1:** Using double quotes (Windows CMD)
 ```bash
 curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=[\"damaged\",\"wrong-item\"]"
+```
+
+**Option 2:** Using single quotes (Git Bash / Linux / Mac)
+```bash
+curl -X GET 'https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=["damaged","wrong-item"]'
+```
+
+**Option 3:** URL encoded
+```bash
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=%5B%22damaged%22,%22wrong-item%22%5D"
 ```
 
 **RTK Query Example:**
 ```javascript
 const { data, isLoading } = useGetReturnReasonsQuery(["damaged", "wrong-item"]);
-// Makes request to: /reasons?in=["damaged","wrong-item"]
 ```
 
 **Success Response (200 OK):**
@@ -348,12 +374,12 @@ const { data, isLoading } = useGetReturnReasonsQuery(["damaged", "wrong-item"]);
 
 ## Quick Reference
 
-| Resource | Method | Endpoint Format | RTK Hook |
-|----------|--------|-----------------|----------|
-| Categories | GET | `/category?in=["id1","id2"]` | `useGetCategoriesQuery()` |
-| Attributes | GET | `/attribute?in=["id1","id2"]` | `useGetAttributesQuery()` |
-| Values | GET | `/value?in=["id1","id2"]` | `useGetValuesQuery()` |
-| Return Reasons | GET | `/reasons?in=["id1","id2"]` | `useGetReturnReasonsQuery()` |
+| Resource | Method | Endpoint | RTK Hook |
+|----------|--------|----------|----------|
+| Categories | GET | `/category?in=[]` | `useGetCategoriesQuery()` |
+| Attributes | GET | `/attribute?in=[]` | `useGetAttributesQuery()` |
+| Values | GET | `/value?in=[]` | `useGetValuesQuery()` |
+| Return Reasons | GET | `/reasons?in=[]` | `useGetReturnReasonsQuery()` |
 
 ---
 
@@ -368,9 +394,19 @@ const { data, isLoading } = useGetReturnReasonsQuery(["damaged", "wrong-item"]);
 
 ---
 
-**API Version:** 2.0.0  
+## Terminal Compatibility
+
+| Terminal | Recommended curl command |
+|----------|-------------------------|
+| **Windows CMD** | Use double quotes with escape: `\"id\"` |
+| **Git Bash** | Use single quotes: `'["id"]'` |
+| **PowerShell** | Use URL encoded version |
+| **Linux/Mac** | Use single quotes: `'["id"]'` |
+
+---
+
+**API Version:** 1.0.0  
 **Base URL:** https://product-taxonomy.devmun.xyz/api/v2/en  
-**Query Format:** `?in=["id1","id2","id3"]`  
 **RTK Query Retries:** 5 times  
 **Last Updated:** February 2026
 
@@ -378,13 +414,13 @@ const { data, isLoading } = useGetReturnReasonsQuery(["damaged", "wrong-item"]);
 
 ## ⚡ Quick Start Guide
 
-1. **Use exact query format**: `?in=["aa","ae","ap"]`
+1. **Choose your terminal type** and use the appropriate curl command
 2. **Setup RTK Query with retry** (5 retries automatically)
 3. **First API Call**: Allow 5-10 seconds for server wake-up
 4. **RTK Query handles retries automatically**
 
 ```javascript
-// Complete setup with exact query format
+// Complete setup with RTK Query
 import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react';
 
 export const taxonomyApi = createApi({
@@ -397,7 +433,10 @@ export const taxonomyApi = createApi({
   ),
   endpoints: (builder) => ({
     getCategories: builder.query({
-      query: (ids) => `/category?in=${JSON.stringify(ids)}`, // Creates: /category?in=["aa","ae","ap"]
+      query: (ids) => ({
+        url: '/category',
+        params: { in: ids }
+      }),
     }),
   }),
 });
