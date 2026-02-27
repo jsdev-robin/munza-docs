@@ -3,7 +3,7 @@
 ## Base URL
 
 ```
-http://localhost:3000/api/v2/en
+https://product-taxonomy.devmun.xyz/api/v2/en
 ```
 
 ## Table of Contents
@@ -33,7 +33,7 @@ Retrieves categories with their hierarchy levels. The level is automatically cal
 **Request Example:**
 
 ```bash
-curl -X GET "http://localhost:3000/api/v2/en/category?in=%5B%22cat-1%22,%22cat-1-2%22%5D"
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/category?in=%5B%22cat-1%22,%22cat-1-2%22%5D"
 ```
 
 **Success Response (200 OK):**
@@ -81,7 +81,7 @@ Upload multiple categories from YAML files.
 **Request Example:**
 
 ```bash
-curl -X POST "http://localhost:3000/api/v2/en/category/create-many"
+curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/category/create-many"
 ```
 
 **Success Response (201 Created):**
@@ -111,7 +111,7 @@ Retrieves attributes by their friendly IDs.
 **Request Example:**
 
 ```bash
-curl -X GET "http://localhost:3000/api/v2/en/attribute?in=%5B%22color%22,%22size%22%5D"
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=%5B%22color%22,%22size%22%5D"
 ```
 
 **Success Response (200 OK):**
@@ -159,7 +159,7 @@ Upload multiple attributes from YAML file.
 **Request Example:**
 
 ```bash
-curl -X POST "http://localhost:3000/api/v2/en/attribute/create-many"
+curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/attribute/create-many"
 ```
 
 **Success Response (201 Created):**
@@ -189,7 +189,7 @@ Retrieves values by their friendly IDs.
 **Request Example:**
 
 ```bash
-curl -X GET "http://localhost:3000/api/v2/en/value?in=%5B%22red%22,%22blue%22,%22large%22%5D"
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/value?in=%5B%22red%22,%22blue%22,%22large%22%5D"
 ```
 
 **Success Response (200 OK):**
@@ -242,7 +242,7 @@ Upload multiple values from YAML file.
 **Request Example:**
 
 ```bash
-curl -X POST "http://localhost:3000/api/v2/en/value/create-many"
+curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/value/create-many"
 ```
 
 **Success Response (201 Created):**
@@ -272,7 +272,7 @@ Retrieves return reasons by their friendly IDs.
 **Request Example:**
 
 ```bash
-curl -X GET "http://localhost:3000/api/v2/en/reasons?in=%5B%22damaged%22,%22wrong-item%22%5D"
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=%5B%22damaged%22,%22wrong-item%22%5D"
 ```
 
 **Success Response (200 OK):**
@@ -318,7 +318,7 @@ Upload multiple return reasons from YAML file.
 **Request Example:**
 
 ```bash
-curl -X POST "http://localhost:3000/api/v2/en/reasons/create-many"
+curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/reasons/create-many"
 ```
 
 **Success Response (201 Created):**
