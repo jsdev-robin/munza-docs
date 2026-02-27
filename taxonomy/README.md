@@ -35,28 +35,16 @@ export const taxonomyApi = createApi({
   ),
   endpoints: (builder) => ({
     getCategories: builder.query({
-      query: (ids) => ({
-        url: '/category',
-        params: { in: JSON.stringify(ids) }
-      }),
+      query: (ids) => `/category?in=${JSON.stringify(ids)}`,
     }),
     getAttributes: builder.query({
-      query: (ids) => ({
-        url: '/attribute',
-        params: { in: JSON.stringify(ids) }
-      }),
+      query: (ids) => `/attribute?in=${JSON.stringify(ids)}`,
     }),
     getValues: builder.query({
-      query: (ids) => ({
-        url: '/value',
-        params: { in: JSON.stringify(ids) }
-      }),
+      query: (ids) => `/value?in=${JSON.stringify(ids)}`,
     }),
     getReturnReasons: builder.query({
-      query: (ids) => ({
-        url: '/reasons',
-        params: { in: JSON.stringify(ids) }
-      }),
+      query: (ids) => `/reasons?in=${JSON.stringify(ids)}`,
     }),
   }),
 });
@@ -75,7 +63,8 @@ import React from 'react';
 import { useGetCategoriesQuery } from './services/taxonomyApi';
 
 function CategoryList() {
-  const categoryIds = ["aa", "ae", "ap", "bi", "bt", "bu", "co", "el", "fb", "fr", "gc", "ha", "hb", "hg", "lb", "ma", "me", "na", "os", "pa", "rc", "se", "sg", "so", "tg", "vp"];
+  // Exact query format: ?in=["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"]
+  const categoryIds = ["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"];
   
   const { data, error, isLoading, isError } = useGetCategoriesQuery(categoryIds);
 
@@ -95,62 +84,6 @@ function CategoryList() {
 }
 ```
 
-### Custom Retry Configuration
-```javascript
-import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react';
-
-// Custom retry condition
-const staggeredBaseQuery = retry(
-  async (args, api, extraOptions) => {
-    const result = await fetchBaseQuery({
-      baseUrl: 'https://product-taxonomy.devmun.xyz/api/v2/en',
-    })(args, api, extraOptions);
-    
-    // Retry on specific error conditions
-    if (result.error?.status === 504 || result.error?.status === 503) {
-      retry.fail(result.error); // Will trigger retry
-    }
-    
-    return result;
-  },
-  { 
-    maxRetries: 5,
-    backoff: (attempt) => Math.min(1000 * 2 ** attempt, 30000), // Exponential backoff
-  },
-);
-
-export const taxonomyApi = createApi({
-  reducerPath: 'taxonomyApi',
-  baseQuery: staggeredBaseQuery,
-  endpoints: (builder) => ({
-    getCategories: builder.query({
-      query: (ids) => ({
-        url: '/category',
-        params: { in: JSON.stringify(ids) }
-      }),
-    }),
-    getAttributes: builder.query({
-      query: (ids) => ({
-        url: '/attribute',
-        params: { in: JSON.stringify(ids) }
-      }),
-    }),
-    getValues: builder.query({
-      query: (ids) => ({
-        url: '/value',
-        params: { in: JSON.stringify(ids) }
-      }),
-    }),
-    getReturnReasons: builder.query({
-      query: (ids) => ({
-        url: '/reasons',
-        params: { in: JSON.stringify(ids) }
-      }),
-    }),
-  }),
-});
-```
-
 ---
 
 ## Categories
@@ -160,23 +93,32 @@ Retrieves categories with their hierarchy levels.
 
 **Endpoint:** `GET /category`
 
+**Query Format:** `?in=["id1","id2","id3"]`
+
 **Query Parameters:**
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
-| `in` | string | Yes | JSON array of category IDs | `["aa", "ae", "ap", "bi", "bt", "bu", "co", "el", "fb", "fr", "gc", "ha", "hb", "hg", "lb", "ma", "me", "na", "os", "pa", "rc", "se", "sg", "so", "tg", "vp"]` |
+| `in` | string | Yes | JSON array of category IDs | `?in=["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"]` |
 
-**Request Example:**
+**Full Request URL:**
+```
+https://product-taxonomy.devmun.xyz/api/v2/en/category?in=["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"]
+```
+
+**Request Example (curl):**
 ```bash
 curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/category?in=[\"aa\",\"ae\",\"ap\",\"bi\",\"bt\",\"bu\",\"co\",\"el\",\"fb\",\"fr\",\"gc\",\"ha\",\"hb\",\"hg\",\"lb\",\"ma\",\"me\",\"na\",\"os\",\"pa\",\"rc\",\"se\",\"sg\",\"so\",\"tg\",\"vp\"]"
 ```
 
 **RTK Query Example:**
 ```javascript
-const { data, isLoading, error } = useGetCategoriesQuery([
-  "aa", "ae", "ap", "bi", "bt", "bu", "co", "el", "fb", "fr", 
-  "gc", "ha", "hb", "hg", "lb", "ma", "me", "na", "os", "pa", 
-  "rc", "se", "sg", "so", "tg", "vp"
+const { data, isLoading } = useGetCategoriesQuery([
+  "aa","ae","ap","bi","bt","bu","co","el","fb","fr",
+  "gc","ha","hb","hg","lb","ma","me","na","os","pa",
+  "rc","se","sg","so","tg","vp"
 ]);
+
+// This makes request to: /category?in=["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"]
 ```
 
 **Success Response (200 OK):**
@@ -215,12 +157,19 @@ Retrieves attributes by their friendly IDs.
 
 **Endpoint:** `GET /attribute`
 
+**Query Format:** `?in=["id1","id2","id3"]`
+
 **Query Parameters:**
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
-| `in` | string | Yes | JSON array of attribute friendly_ids | `["color", "size", "material"]` |
+| `in` | string | Yes | JSON array of attribute friendly_ids | `?in=["color","size","material"]` |
 
-**Request Example:**
+**Full Request URL:**
+```
+https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=["color","size","material"]
+```
+
+**Request Example (curl):**
 ```bash
 curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=[\"color\",\"size\",\"material\"]"
 ```
@@ -228,6 +177,7 @@ curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=[\"color
 **RTK Query Example:**
 ```javascript
 const { data, isLoading } = useGetAttributesQuery(["color", "size", "material"]);
+// Makes request to: /attribute?in=["color","size","material"]
 ```
 
 **Success Response (200 OK):**
@@ -263,12 +213,19 @@ Retrieves values by their friendly IDs.
 
 **Endpoint:** `GET /value`
 
+**Query Format:** `?in=["id1","id2","id3"]`
+
 **Query Parameters:**
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
-| `in` | string | Yes | JSON array of value friendly_ids | `["red", "blue", "large"]` |
+| `in` | string | Yes | JSON array of value friendly_ids | `?in=["red","blue","large"]` |
 
-**Request Example:**
+**Full Request URL:**
+```
+https://product-taxonomy.devmun.xyz/api/v2/en/value?in=["red","blue","large"]
+```
+
+**Request Example (curl):**
 ```bash
 curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/value?in=[\"red\",\"blue\",\"large\"]"
 ```
@@ -276,6 +233,7 @@ curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/value?in=[\"red\",\"b
 **RTK Query Example:**
 ```javascript
 const { data, isLoading } = useGetValuesQuery(["red", "blue", "large"]);
+// Makes request to: /value?in=["red","blue","large"]
 ```
 
 **Success Response (200 OK):**
@@ -309,12 +267,19 @@ Retrieves return reasons by their friendly IDs.
 
 **Endpoint:** `GET /reasons`
 
+**Query Format:** `?in=["id1","id2","id3"]`
+
 **Query Parameters:**
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
-| `in` | string | Yes | JSON array of return reason friendly_ids | `["damaged", "wrong-item"]` |
+| `in` | string | Yes | JSON array of return reason friendly_ids | `?in=["damaged","wrong-item"]` |
 
-**Request Example:**
+**Full Request URL:**
+```
+https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=["damaged","wrong-item"]
+```
+
+**Request Example (curl):**
 ```bash
 curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=[\"damaged\",\"wrong-item\"]"
 ```
@@ -322,6 +287,7 @@ curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=[\"damaged
 **RTK Query Example:**
 ```javascript
 const { data, isLoading } = useGetReturnReasonsQuery(["damaged", "wrong-item"]);
+// Makes request to: /reasons?in=["damaged","wrong-item"]
 ```
 
 **Success Response (200 OK):**
@@ -368,19 +334,6 @@ const { data, isLoading } = useGetReturnReasonsQuery(["damaged", "wrong-item"]);
 | **500 Internal Server Error** | Server error | `{"status": "error", "message": "YAML file not found"}` |
 | **503/504 Service Unavailable** | Server wake-up delay | `{"status": "error", "message": "Server is waking up, please retry"}` |
 
-### RTK Query Error Handling
-```javascript
-const { data, error, isError, isLoading } = useGetCategoriesQuery(categoryIds);
-
-if (isLoading) return <div>Loading... (first request may take 5-10s)</div>;
-
-if (isError) {
-  // RTK Query will automatically retry 5 times due to our configuration
-  console.log('Error after retries:', error);
-  return <div>Failed to load: {error.data?.message || error.error}</div>;
-}
-```
-
 ---
 
 ## Rate Limiting
@@ -395,12 +348,12 @@ if (isError) {
 
 ## Quick Reference
 
-| Resource | Method | Endpoint | RTK Hook |
-|----------|--------|----------|----------|
-| Categories | GET | `/category?in=[]` | `useGetCategoriesQuery()` |
-| Attributes | GET | `/attribute?in=[]` | `useGetAttributesQuery()` |
-| Values | GET | `/value?in=[]` | `useGetValuesQuery()` |
-| Return Reasons | GET | `/reasons?in=[]` | `useGetReturnReasonsQuery()` |
+| Resource | Method | Endpoint Format | RTK Hook |
+|----------|--------|-----------------|----------|
+| Categories | GET | `/category?in=["id1","id2"]` | `useGetCategoriesQuery()` |
+| Attributes | GET | `/attribute?in=["id1","id2"]` | `useGetAttributesQuery()` |
+| Values | GET | `/value?in=["id1","id2"]` | `useGetValuesQuery()` |
+| Return Reasons | GET | `/reasons?in=["id1","id2"]` | `useGetReturnReasonsQuery()` |
 
 ---
 
@@ -415,8 +368,9 @@ if (isError) {
 
 ---
 
-**API Version:** 1.0.0  
+**API Version:** 2.0.0  
 **Base URL:** https://product-taxonomy.devmun.xyz/api/v2/en  
+**Query Format:** `?in=["id1","id2","id3"]`  
 **RTK Query Retries:** 5 times  
 **Last Updated:** February 2026
 
@@ -424,13 +378,13 @@ if (isError) {
 
 ## ⚡ Quick Start Guide
 
-1. **Setup RTK Query with retry** (5 retries automatically)
-2. **First API Call**: Allow 5-10 seconds for server wake-up
-3. **RTK Query handles retries automatically**
-4. **Daily Usage**: Normal response time after first call
+1. **Use exact query format**: `?in=["aa","ae","ap"]`
+2. **Setup RTK Query with retry** (5 retries automatically)
+3. **First API Call**: Allow 5-10 seconds for server wake-up
+4. **RTK Query handles retries automatically**
 
 ```javascript
-// Complete setup example
+// Complete setup with exact query format
 import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react';
 
 export const taxonomyApi = createApi({
@@ -439,16 +393,17 @@ export const taxonomyApi = createApi({
     fetchBaseQuery({
       baseUrl: 'https://product-taxonomy.devmun.xyz/api/v2/en',
     }),
-    { maxRetries: 5 }, // Handles Vercel wake-up automatically
+    { maxRetries: 5 },
   ),
   endpoints: (builder) => ({
     getCategories: builder.query({
-      query: (ids) => ({
-        url: '/category',
-        params: { in: JSON.stringify(ids) }
-      }),
+      query: (ids) => `/category?in=${JSON.stringify(ids)}`, // Creates: /category?in=["aa","ae","ap"]
     }),
   }),
 });
+
+// Usage
+const categoryIds = ["aa","ae","ap","bi","bt","bu","co","el","fb","fr","gc","ha","hb","hg","lb","ma","me","na","os","pa","rc","se","sg","so","tg","vp"];
+const { data } = useGetCategoriesQuery(categoryIds);
 ```
 ```
