@@ -1,13 +1,15 @@
 # Taxonomy API Documentation
 
 ## Base URL
-
 ```
 https://product-taxonomy.devmun.xyz/api/v2/en
 ```
 
-## Table of Contents
+## Important Note for First-Time Users
+⚠️ **This API is hosted on Vercel's free tier. The server may enter a dormant state when not in use. On the first request, please allow 5-10 seconds for the server to wake up. Subsequent requests will be faster.**
 
+## Table of Contents
+- [Redux Toolkit Integration](#redux-toolkit-integration)
 - [Categories](#categories)
 - [Attributes](#attributes)
 - [Values](#values)
@@ -17,53 +19,185 @@ https://product-taxonomy.devmun.xyz/api/v2/en
 
 ---
 
+## Redux Toolkit Integration
+
+### API Slice Setup with Retry Logic
+```javascript
+import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react';
+
+export const taxonomyApi = createApi({
+  reducerPath: 'taxonomyApi',
+  baseQuery: retry(
+    fetchBaseQuery({
+      baseUrl: 'https://product-taxonomy.devmun.xyz/api/v2/en',
+    }),
+    { maxRetries: 5 }, // Automatically retry failed requests 5 times
+  ),
+  endpoints: (builder) => ({
+    getCategories: builder.query({
+      query: (ids) => ({
+        url: '/category',
+        params: { in: JSON.stringify(ids) }
+      }),
+    }),
+    getAttributes: builder.query({
+      query: (ids) => ({
+        url: '/attribute',
+        params: { in: JSON.stringify(ids) }
+      }),
+    }),
+    getValues: builder.query({
+      query: (ids) => ({
+        url: '/value',
+        params: { in: JSON.stringify(ids) }
+      }),
+    }),
+    getReturnReasons: builder.query({
+      query: (ids) => ({
+        url: '/reasons',
+        params: { in: JSON.stringify(ids) }
+      }),
+    }),
+  }),
+});
+
+export const {
+  useGetCategoriesQuery,
+  useGetAttributesQuery,
+  useGetValuesQuery,
+  useGetReturnReasonsQuery,
+} = taxonomyApi;
+```
+
+### Usage in React Component
+```jsx
+import React from 'react';
+import { useGetCategoriesQuery } from './services/taxonomyApi';
+
+function CategoryList() {
+  const categoryIds = ["aa", "ae", "ap", "bi", "bt", "bu", "co", "el", "fb", "fr", "gc", "ha", "hb", "hg", "lb", "ma", "me", "na", "os", "pa", "rc", "se", "sg", "so", "tg", "vp"];
+  
+  const { data, error, isLoading, isError } = useGetCategoriesQuery(categoryIds);
+
+  if (isLoading) return <div>Loading... (first request may take 5-10s)</div>;
+  if (isError) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <h2>Categories ({data?.total})</h2>
+      <ul>
+        {data?.payload.categories.map((category) => (
+          <li key={category.id}>{category.name} (Level: {category.level})</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### Custom Retry Configuration
+```javascript
+import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react';
+
+// Custom retry condition
+const staggeredBaseQuery = retry(
+  async (args, api, extraOptions) => {
+    const result = await fetchBaseQuery({
+      baseUrl: 'https://product-taxonomy.devmun.xyz/api/v2/en',
+    })(args, api, extraOptions);
+    
+    // Retry on specific error conditions
+    if (result.error?.status === 504 || result.error?.status === 503) {
+      retry.fail(result.error); // Will trigger retry
+    }
+    
+    return result;
+  },
+  { 
+    maxRetries: 5,
+    backoff: (attempt) => Math.min(1000 * 2 ** attempt, 30000), // Exponential backoff
+  },
+);
+
+export const taxonomyApi = createApi({
+  reducerPath: 'taxonomyApi',
+  baseQuery: staggeredBaseQuery,
+  endpoints: (builder) => ({
+    getCategories: builder.query({
+      query: (ids) => ({
+        url: '/category',
+        params: { in: JSON.stringify(ids) }
+      }),
+    }),
+    getAttributes: builder.query({
+      query: (ids) => ({
+        url: '/attribute',
+        params: { in: JSON.stringify(ids) }
+      }),
+    }),
+    getValues: builder.query({
+      query: (ids) => ({
+        url: '/value',
+        params: { in: JSON.stringify(ids) }
+      }),
+    }),
+    getReturnReasons: builder.query({
+      query: (ids) => ({
+        url: '/reasons',
+        params: { in: JSON.stringify(ids) }
+      }),
+    }),
+  }),
+});
+```
+
+---
+
 ## Categories
 
 ### Get Categories by IDs
-
-Retrieves categories with their hierarchy levels. The level is automatically calculated based on the ID structure (number of hyphens).
+Retrieves categories with their hierarchy levels.
 
 **Endpoint:** `GET /category`
 
 **Query Parameters:**
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
-| `in` | string | Yes | JSON array of category IDs | `["cat-1", "cat-1-2", "cat-2-1-3"]` |
+| `in` | string | Yes | JSON array of category IDs | `["aa", "ae", "ap", "bi", "bt", "bu", "co", "el", "fb", "fr", "gc", "ha", "hb", "hg", "lb", "ma", "me", "na", "os", "pa", "rc", "se", "sg", "so", "tg", "vp"]` |
 
 **Request Example:**
-
 ```bash
-curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/category?in=%5B%22cat-1%22,%22cat-1-2%22%5D"
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/category?in=[\"aa\",\"ae\",\"ap\",\"bi\",\"bt\",\"bu\",\"co\",\"el\",\"fb\",\"fr\",\"gc\",\"ha\",\"hb\",\"hg\",\"lb\",\"ma\",\"me\",\"na\",\"os\",\"pa\",\"rc\",\"se\",\"sg\",\"so\",\"tg\",\"vp\"]"
+```
+
+**RTK Query Example:**
+```javascript
+const { data, isLoading, error } = useGetCategoriesQuery([
+  "aa", "ae", "ap", "bi", "bt", "bu", "co", "el", "fb", "fr", 
+  "gc", "ha", "hb", "hg", "lb", "ma", "me", "na", "os", "pa", 
+  "rc", "se", "sg", "so", "tg", "vp"
+]);
 ```
 
 **Success Response (200 OK):**
-
 ```json
 {
   "status": "success",
   "message": "Categories fetched successfully",
-  "total": 2,
+  "total": 26,
   "payload": {
     "categories": [
       {
         "_id": "67b5b8b8b8b8b8b8b8b8b8b8",
-        "id": "cat-1",
+        "id": "aa",
         "name": "Electronics",
-        "children": ["cat-1-1", "cat-1-2"],
+        "children": ["aa-1", "aa-2"],
         "attributes": ["color", "size"],
         "return_reasons": ["damaged", "wrong-item"],
         "level": 1,
-        "createdAt": "2024-01-01T00:00:00.000Z",
-        "updatedAt": "2024-01-01T00:00:00.000Z"
-      },
-      {
-        "_id": "67b5b8b8b8b8b8b8b8b8b8b9",
-        "id": "cat-1-2",
-        "name": "Smartphones",
-        "children": [],
-        "attributes": ["screen-size", "ram"],
-        "return_reasons": ["defective", "not-as-described"],
-        "level": 2,
+        "isRoot": true,
+        "isLeaf": false,
+        "full_name": "Electronics",
         "createdAt": "2024-01-01T00:00:00.000Z",
         "updatedAt": "2024-01-01T00:00:00.000Z"
       }
@@ -72,33 +206,11 @@ curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/category?in=%5B%22cat
 }
 ```
 
-### Bulk Create Categories
-
-Upload multiple categories from YAML files.
-
-**Endpoint:** `POST /category/create-many`
-
-**Request Example:**
-
-```bash
-curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/category/create-many"
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "status": "success",
-  "message": "25 categories uploaded successfully"
-}
-```
-
 ---
 
 ## Attributes
 
 ### Get Attributes by IDs
-
 Retrieves attributes by their friendly IDs.
 
 **Endpoint:** `GET /attribute`
@@ -109,18 +221,21 @@ Retrieves attributes by their friendly IDs.
 | `in` | string | Yes | JSON array of attribute friendly_ids | `["color", "size", "material"]` |
 
 **Request Example:**
-
 ```bash
-curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=%5B%22color%22,%22size%22%5D"
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=[\"color\",\"size\",\"material\"]"
+```
+
+**RTK Query Example:**
+```javascript
+const { data, isLoading } = useGetAttributesQuery(["color", "size", "material"]);
 ```
 
 **Success Response (200 OK):**
-
 ```json
 {
   "status": "success",
   "message": "Attributes fetched successfully",
-  "total": 2,
+  "total": 3,
   "payload": {
     "attributes": [
       {
@@ -133,41 +248,9 @@ curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/attribute?in=%5B%22co
         "values": ["red", "blue", "green", "black"],
         "createdAt": "2024-01-01T00:00:00.000Z",
         "updatedAt": "2024-01-01T00:00:00.000Z"
-      },
-      {
-        "_id": "67b5b8b8b8b8b8b8b8b8b8c1",
-        "id": 2,
-        "name": "Size",
-        "description": "Product size options",
-        "friendly_id": "size",
-        "handle": "size",
-        "values": ["xs", "s", "m", "l", "xl"],
-        "createdAt": "2024-01-01T00:00:00.000Z",
-        "updatedAt": "2024-01-01T00:00:00.000Z"
       }
     ]
   }
-}
-```
-
-### Bulk Create Attributes
-
-Upload multiple attributes from YAML file.
-
-**Endpoint:** `POST /attribute/create-many`
-
-**Request Example:**
-
-```bash
-curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/attribute/create-many"
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "status": "success",
-  "message": "15 attributes uploaded successfully"
 }
 ```
 
@@ -176,7 +259,6 @@ curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/attribute/create-man
 ## Values
 
 ### Get Values by IDs
-
 Retrieves values by their friendly IDs.
 
 **Endpoint:** `GET /value`
@@ -187,13 +269,16 @@ Retrieves values by their friendly IDs.
 | `in` | string | Yes | JSON array of value friendly_ids | `["red", "blue", "large"]` |
 
 **Request Example:**
-
 ```bash
-curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/value?in=%5B%22red%22,%22blue%22,%22large%22%5D"
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/value?in=[\"red\",\"blue\",\"large\"]"
+```
+
+**RTK Query Example:**
+```javascript
+const { data, isLoading } = useGetValuesQuery(["red", "blue", "large"]);
 ```
 
 **Success Response (200 OK):**
-
 ```json
 {
   "status": "success",
@@ -209,48 +294,9 @@ curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/value?in=%5B%22red%22
         "handle": "red",
         "createdAt": "2024-01-01T00:00:00.000Z",
         "updatedAt": "2024-01-01T00:00:00.000Z"
-      },
-      {
-        "_id": "67b5b8b8b8b8b8b8b8b8b8d1",
-        "id": 102,
-        "name": "Blue",
-        "friendly_id": "blue",
-        "handle": "blue",
-        "createdAt": "2024-01-01T00:00:00.000Z",
-        "updatedAt": "2024-01-01T00:00:00.000Z"
-      },
-      {
-        "_id": "67b5b8b8b8b8b8b8b8b8b8d2",
-        "id": 201,
-        "name": "Large",
-        "friendly_id": "large",
-        "handle": "large",
-        "createdAt": "2024-01-01T00:00:00.000Z",
-        "updatedAt": "2024-01-01T00:00:00.000Z"
       }
     ]
   }
-}
-```
-
-### Bulk Create Values
-
-Upload multiple values from YAML file.
-
-**Endpoint:** `POST /value/create-many`
-
-**Request Example:**
-
-```bash
-curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/value/create-many"
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "status": "success",
-  "message": "50 values uploaded successfully"
 }
 ```
 
@@ -259,7 +305,6 @@ curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/value/create-many"
 ## Return Reasons
 
 ### Get Return Reasons by IDs
-
 Retrieves return reasons by their friendly IDs.
 
 **Endpoint:** `GET /reasons`
@@ -267,16 +312,19 @@ Retrieves return reasons by their friendly IDs.
 **Query Parameters:**
 | Parameter | Type | Required | Description | Example |
 |-----------|------|----------|-------------|---------|
-| `in` | string | Yes | JSON array of return reason friendly_ids | `["damaged", "wrong-item", "not-as-described"]` |
+| `in` | string | Yes | JSON array of return reason friendly_ids | `["damaged", "wrong-item"]` |
 
 **Request Example:**
-
 ```bash
-curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=%5B%22damaged%22,%22wrong-item%22%5D"
+curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=[\"damaged\",\"wrong-item\"]"
+```
+
+**RTK Query Example:**
+```javascript
+const { data, isLoading } = useGetReturnReasonsQuery(["damaged", "wrong-item"]);
 ```
 
 **Success Response (200 OK):**
-
 ```json
 {
   "status": "success",
@@ -293,40 +341,9 @@ curl -X GET "https://product-taxonomy.devmun.xyz/api/v2/en/reasons?in=%5B%22dama
         "handle": "damaged",
         "createdAt": "2024-01-01T00:00:00.000Z",
         "updatedAt": "2024-01-01T00:00:00.000Z"
-      },
-      {
-        "_id": "67b5b8b8b8b8b8b8b8b8b8e1",
-        "id": 2,
-        "name": "Wrong Item",
-        "description": "Received incorrect product",
-        "friendly_id": "wrong-item",
-        "handle": "wrong-item",
-        "createdAt": "2024-01-01T00:00:00.000Z",
-        "updatedAt": "2024-01-01T00:00:00.000Z"
       }
     ]
   }
-}
-```
-
-### Bulk Create Return Reasons
-
-Upload multiple return reasons from YAML file.
-
-**Endpoint:** `POST /reasons/create-many`
-
-**Request Example:**
-
-```bash
-curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/reasons/create-many"
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "status": "success",
-  "message": "8 return_reasons uploaded successfully"
 }
 ```
 
@@ -335,9 +352,6 @@ curl -X POST "https://product-taxonomy.devmun.xyz/api/v2/en/reasons/create-many"
 ## Error Handling
 
 ### Error Response Format
-
-All errors follow this format:
-
 ```json
 {
   "status": "error",
@@ -346,38 +360,24 @@ All errors follow this format:
 ```
 
 ### Common Error Codes
+| Status Code | Description | Example |
+|------------|-------------|---------|
+| **400 Bad Request** | Invalid query parameters | `{"status": "error", "message": "Invalid JSON in 'in' parameter"}` |
+| **404 Not Found** | Resource not found | `{"status": "error", "message": "Can't find /api/v2/en/invalid on this server!"}` |
+| **429 Too Many Requests** | Rate limit exceeded | `{"status": "error", "message": "Too many requests, please try again later."}` |
+| **500 Internal Server Error** | Server error | `{"status": "error", "message": "YAML file not found"}` |
+| **503/504 Service Unavailable** | Server wake-up delay | `{"status": "error", "message": "Server is waking up, please retry"}` |
 
-| Status Code                   | Description              | Example                                                                           |
-| ----------------------------- | ------------------------ | --------------------------------------------------------------------------------- |
-| **400 Bad Request**           | Invalid query parameters | `{"status": "error", "message": "Invalid JSON in 'in' parameter"}`                |
-| **404 Not Found**             | Resource not found       | `{"status": "error", "message": "Can't find /api/v2/en/invalid on this server!"}` |
-| **429 Too Many Requests**     | Rate limit exceeded      | `{"status": "error", "message": "Too many requests, please try again later."}`    |
-| **500 Internal Server Error** | Server error             | `{"status": "error", "message": "YAML file not found"}`                           |
+### RTK Query Error Handling
+```javascript
+const { data, error, isError, isLoading } = useGetCategoriesQuery(categoryIds);
 
-### 404 Example
+if (isLoading) return <div>Loading... (first request may take 5-10s)</div>;
 
-```json
-{
-  "status": "error",
-  "message": "Can't find /api/v2/en/nonexistent on this server!"
-}
-```
-
-### Rate Limit Example
-
-```json
-{
-  "status": "error",
-  "message": "Too many requests, please try again later."
-}
-```
-
-### YAML File Error Example
-
-```json
-{
-  "status": "error",
-  "message": "No valid base_attributes found in YAML file"
+if (isError) {
+  // RTK Query will automatically retry 5 times due to our configuration
+  console.log('Error after retries:', error);
+  return <div>Failed to load: {error.data?.message || error.error}</div>;
 }
 ```
 
@@ -385,94 +385,70 @@ All errors follow this format:
 
 ## Rate Limiting
 
-The API implements rate limiting to prevent abuse.
-
-| Limit                    | Value                    |
-| ------------------------ | ------------------------ |
-| **Window**               | 15 minutes               |
-| **Max Requests**         | 100 per window           |
-| **Headers**              | Draft-7 standard headers |
-| **Status Code on Limit** | 429 Too Many Requests    |
-
-When rate limit is exceeded, the API returns a 429 status code with an error message.
-
----
-
-## Data Models
-
-### Category Object
-
-| Field            | Type   | Description                           |
-| ---------------- | ------ | ------------------------------------- |
-| `_id`            | string | MongoDB ObjectId                      |
-| `id`             | string | Category identifier (e.g., "cat-1-2") |
-| `name`           | string | Category name                         |
-| `children`       | array  | Array of child category IDs           |
-| `attributes`     | array  | Array of attribute friendly_ids       |
-| `return_reasons` | array  | Array of return reason friendly_ids   |
-| `level`          | number | Auto-calculated hierarchy level       |
-| `createdAt`      | string | ISO timestamp                         |
-| `updatedAt`      | string | ISO timestamp                         |
-
-### Attribute Object
-
-| Field         | Type   | Description                 |
-| ------------- | ------ | --------------------------- |
-| `_id`         | string | MongoDB ObjectId            |
-| `id`          | number | Numeric identifier          |
-| `name`        | string | Attribute name              |
-| `description` | string | Attribute description       |
-| `friendly_id` | string | URL-friendly identifier     |
-| `handle`      | string | Unique handle               |
-| `values`      | array  | Array of value friendly_ids |
-| `createdAt`   | string | ISO timestamp               |
-| `updatedAt`   | string | ISO timestamp               |
-
-### Value Object
-
-| Field         | Type   | Description             |
-| ------------- | ------ | ----------------------- |
-| `_id`         | string | MongoDB ObjectId        |
-| `id`          | number | Numeric identifier      |
-| `name`        | string | Value name              |
-| `friendly_id` | string | URL-friendly identifier |
-| `handle`      | string | Unique handle           |
-| `createdAt`   | string | ISO timestamp           |
-| `updatedAt`   | string | ISO timestamp           |
-
-### Return Reason Object
-
-| Field         | Type   | Description             |
-| ------------- | ------ | ----------------------- |
-| `_id`         | string | MongoDB ObjectId        |
-| `id`          | number | Numeric identifier      |
-| `name`        | string | Reason name             |
-| `description` | string | Reason description      |
-| `friendly_id` | string | URL-friendly identifier |
-| `handle`      | string | Unique handle           |
-| `createdAt`   | string | ISO timestamp           |
-| `updatedAt`   | string | ISO timestamp           |
+| Limit | Value |
+|-------|-------|
+| **Window** | 15 minutes |
+| **Max Requests** | 100 per window |
+| **Status Code on Limit** | 429 Too Many Requests |
 
 ---
 
 ## Quick Reference
 
-| Resource       | Method | Endpoint                 | Description                        |
-| -------------- | ------ | ------------------------ | ---------------------------------- |
-| Categories     | GET    | `/category?in=[]`        | Get categories by IDs              |
-| Categories     | POST   | `/category/create-many`  | Bulk upload categories             |
-| Attributes     | GET    | `/attribute?in=[]`       | Get attributes by friendly_ids     |
-| Attributes     | POST   | `/attribute/create-many` | Bulk upload attributes             |
-| Values         | GET    | `/value?in=[]`           | Get values by friendly_ids         |
-| Values         | POST   | `/value/create-many`     | Bulk upload values                 |
-| Return Reasons | GET    | `/reasons?in=[]`         | Get return reasons by friendly_ids |
-| Return Reasons | POST   | `/reasons/create-many`   | Bulk upload return reasons         |
+| Resource | Method | Endpoint | RTK Hook |
+|----------|--------|----------|----------|
+| Categories | GET | `/category?in=[]` | `useGetCategoriesQuery()` |
+| Attributes | GET | `/attribute?in=[]` | `useGetAttributesQuery()` |
+| Values | GET | `/value?in=[]` | `useGetValuesQuery()` |
+| Return Reasons | GET | `/reasons?in=[]` | `useGetReturnReasonsQuery()` |
+
+---
+
+## Server Information
+
+| Detail | Information |
+|--------|-------------|
+| **Hosting** | Vercel (Free Tier) |
+| **First Request** | 5-10 seconds wake-up time |
+| **Retry Logic** | 5 automatic retries (RTK Query) |
+| **Dormancy Period** | Server sleeps after inactivity |
 
 ---
 
 **API Version:** 1.0.0  
+**Base URL:** https://product-taxonomy.devmun.xyz/api/v2/en  
+**RTK Query Retries:** 5 times  
 **Last Updated:** February 2026
 
-```
+---
 
+## ⚡ Quick Start Guide
+
+1. **Setup RTK Query with retry** (5 retries automatically)
+2. **First API Call**: Allow 5-10 seconds for server wake-up
+3. **RTK Query handles retries automatically**
+4. **Daily Usage**: Normal response time after first call
+
+```javascript
+// Complete setup example
+import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react';
+
+export const taxonomyApi = createApi({
+  reducerPath: 'taxonomyApi',
+  baseQuery: retry(
+    fetchBaseQuery({
+      baseUrl: 'https://product-taxonomy.devmun.xyz/api/v2/en',
+    }),
+    { maxRetries: 5 }, // Handles Vercel wake-up automatically
+  ),
+  endpoints: (builder) => ({
+    getCategories: builder.query({
+      query: (ids) => ({
+        url: '/category',
+        params: { in: JSON.stringify(ids) }
+      }),
+    }),
+  }),
+});
+```
 ```
