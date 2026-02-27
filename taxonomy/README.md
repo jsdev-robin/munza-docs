@@ -405,7 +405,7 @@ const { data, isLoading } = useGetReturnReasonsQuery(["damaged", "wrong-item"]);
 
 ---
 
-**API Version:** 1.0.0  
+**API Version:** 2.0.0  
 **Base URL:** https://product-taxonomy.devmun.xyz/api/v2/en  
 **RTK Query Retries:** 5 times  
 **Last Updated:** February 2026
